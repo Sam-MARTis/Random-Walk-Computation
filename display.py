@@ -1,27 +1,62 @@
-import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import datashader as ds
+import datashader.transfer_functions as tf
+from datashader.utils import export_image
 
-#5000 5000 100 0.02
-# n nt T dt
 
-#-0.0146497 -0.00602234 -0.0515265 -0.100039 -0.101055 -0.153446 -0.157871 -0.199772 -0.247559 -0.180808 -0.244171 -0.165765 -0.15298 -0.29146 -0.438081 -0.326677 -0.305566 
 def read_data(file_path):
     particles = []
+    # pids = []
     with open(file_path, 'r') as file:
         data = file.readlines()
         header = data[0].strip().split()
         n, nt, T, dt = map(float, header)
-
+        # pid = 0
         for line in data[1:]:
-            line = line.strip()
-            line_data = list(map(float, line.split()))
-            particles.append(line_data)
-    return particles, (n, nt, T, dt)
+            particles.append(list(map(float, line.split())))            
+            # pids.append(pid)
+
+
+    return np.array(particles), int(n), int(nt), T, dt
+
 
 if __name__ == "__main__":
-    particles, (n, nt, T, dt) = read_data("particles.txt")
-    time = [np.sqrt(i*dt) for i in range(int(nt))]
-        
-    for particle in particles:
-        plt.plot(time, particle)
-    plt.show()
+    particles, n, nt, T, dt = read_data("particles.txt")
+
+    # Build (t, x) pairs for all trajectories
+ # Build (t, x) pairs for all trajectories
+    t = np.arange(nt) * dt
+    t = np.tile(t, n)
+    x = particles.reshape(-1)
+
+    pid = np.repeat(np.arange(n), nt)
+
+    df = pd.DataFrame({
+        "t": t,
+        "x": x,
+        "pid": pid
+    })
+
+    cvs = ds.Canvas(
+    plot_width=1600,
+    plot_height=900,
+    x_range=(0, T),
+    y_range=(x.min(), x.max())
+    )
+
+    agg = cvs.line(df, "t", "x", agg=ds.count())
+
+    img = tf.shade(agg, how="eq_hist")
+    img = tf.set_background(img, "black")
+
+    export_image(img, "trajectories_datashader")
+
+
+    # agg = cvs.paths(df, "t", "x", agg=ds.any())
+
+    # img = tf.shade(agg)
+    # img = tf.set_background(img, "black")
+
+    # export_image(img, "trajectories_datashader")
+
