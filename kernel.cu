@@ -1,10 +1,10 @@
 #include<curand.h>
 #include<math.h>
 
-
+__global__
 void compute_trajectories(float* trajectories, const float sqrt_dt, const float A, const int n, const int nt){
     const int idx = (blockIdx.x * blockDim.x + threadIdx.x)*nt;
-    if(idx >= n*nt) return;
+    if(idx >= (size_t)n*nt) return;
     float x = 0.0f;
     const float Asqrtdt = A * sqrt_dt;
     for(int i = 0; i < nt; i++) {
@@ -30,8 +30,11 @@ void kernel_launcher(float* results, const float dt, const float T, const int n,
 
     const float sqrt_dt = sqrtf(dt);
     const dim3 blockSize(TX);
-    const dim3 gridSize((N + TX - 1) / TX);
+    const dim3 gridSize((n + TX - 1) / TX);
     compute_trajectories<<<gridSize, blockSize>>>(trajectories, sqrt_dt, A, n, nt);
     cudaDeviceSynchronize();
+    cudaMemcpy(results, trajectories, N * sizeof(float), cudaMemcpyDeviceToHost);
 
+    cudaFree(trajectories);
+    curandDestroyGenerator(rangen);
 }
