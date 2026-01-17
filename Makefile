@@ -3,7 +3,7 @@ UNAME_S := $(shell uname)
 ifeq ($(UNAME_S), Darwin)
 	LDFLAGS = -Xlinker -framework,OpenGL, -XLinker - framework, GLUT
 else
-	LDFLAGS += -lcuda -lcudart
+	LDFLAGS += -lcuda -lcudart -lcurand
 	LDFLAGS += -lglut -lGL -lGLU -lGLEW
 endif
 
@@ -19,10 +19,10 @@ all: main.exe
 main.exe: main.o kernel.o
 	$(NVCC) $^ -o $@ -Wno-deprecated-gpu-targets $(LDFLAGS)
 
-main.o: main.cpp kernel.h 
+main.o: main.cpp kernel.hpp
 	$(NVCC) $(NVCC_FLAGS) -c $< -o $@ 
 
-kernel.o : kernel.cu kernel.h
+kernel.o : kernel.cu kernel.hpp
 	$(NVCC) $(NVCC_FLAGS) -c $< -o $@ 
 	
 clean:
