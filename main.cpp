@@ -36,8 +36,9 @@ void parse_arguments(int argc, char** argv, float& dt, float& T, int& n, float& 
     }
 }
 
-void save_data_to_file(const float* data, const int n, const int nt){
+void save_data_to_file(const float* data, const int n, const int nt, const float T, const float dt) {
     std::ofstream out("particles.txt");
+    out << n << ' ' << nt << ' ' << T << ' ' << dt << '\n';
     for (size_t i = 0; i < (size_t)n; ++i) {
         for (size_t t = 0; t < (size_t)nt; ++t)
             out << data[i*nt + t] << ' ';
@@ -63,7 +64,7 @@ int main(int argc, char** argv) {
 
     kernel_launcher(results, dt, T, n, A);
 
-    save_data_to_file(results, n, nt);
+    save_data_to_file(results, n, nt, T, dt);
 
     free(results);
     return 0;
