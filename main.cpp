@@ -20,7 +20,7 @@ struct Config{
 void perform_compatibility_check(){
     return;
 }
-void parse_arguments(const int argc, const char** argv, float& dt, float& T, int& n, float& A) {
+void parse_arguments(int argc, char** argv, float& dt, float& T, int& n, float& A) {
 
     for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
@@ -34,6 +34,16 @@ void parse_arguments(const int argc, const char** argv, float& dt, float& T, int
             A = std::stof(argv[++i]);
         }
     }
+}
+
+void save_data_to_file(const float* data, const int n, const int nt){
+    std::ofstream out("particles.txt");
+    for (size_t i = 0; i < (size_t)n; ++i) {
+        for (size_t t = 0; t < (size_t)nt; ++t)
+            out << data[i*nt + t] << ' ';
+        out << '\n';
+    }
+    out.close();
 }
 
 #define DEFAULT_DT 0.01f
@@ -52,6 +62,8 @@ int main(int argc, char** argv) {
     float* results = (float*)malloc(n * nt * sizeof(float));
 
     kernel_launcher(results, dt, T, n, A);
+
+    save_data_to_file(results, n, nt);
 
     free(results);
     return 0;
