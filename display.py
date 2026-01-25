@@ -14,7 +14,11 @@ def read_data(file_path):
         n, nt, T, dt = map(float, header)
         # pid = 0
         for line in data[1:]:
-            particles.append(list(map(float, line.split())))            
+            vals = list(map(float, line.split()))
+            vals[-1] = np.nan
+            particles.append(list(map(float, line.split())))
+            # particles.append(np.nan)  # Append NaN to mark the end of trajectory
+            # particles[-1][-1] = np.nan  # Append NaN to mark the end of trajectory
             # pids.append(pid)
 
 
